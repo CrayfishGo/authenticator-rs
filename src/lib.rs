@@ -1,3 +1,17 @@
+//!
+//! # Example
+//! ```rust
+//! use crate::authenticator;
+//! fn main(){
+//!     let secret =  authenticator::create_secret(32); // create a random secret
+//!     let pin_code_rs = authenticator::current_pin_code(secret.as_str(), 6);
+//!     match pin_code_rs {
+//!             Ok(code) => { println!("Current Pin Code: {}", code) }
+//!             Err(e) => { println!("Something has error: {}", e) }
+//!         }
+//! }
+//!
+//! ```
 mod authenticator;
 
 #[cfg(test)]
@@ -7,7 +21,7 @@ mod test {
     #[test]
     fn test_create_secret() {
         let secret = authenticator::create_secret(32);
-        println!("{:?}", secret);
+        println!("{:?}", secret.as_str());
         assert_eq!(secret.len(), 32);
     }
 
