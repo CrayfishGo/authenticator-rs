@@ -31,6 +31,16 @@ impl Signer for Key {
     }
 }
 
+pub fn create_secret(length: u8) -> String {
+    let mut secret = Vec::<char>::new();
+    let mut index: usize;
+    for _ in 0..length {
+        index = (rand::random::<u8>() & 0x1F) as usize;
+        secret.push(ALPHABET[index]);
+    }
+    secret.into_iter().collect()
+}
+
 pub fn current_pin_code(secret: &str, code_len: u16) -> Result<String, String> {
     let otp_state = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() / 30;
     if secret.len() < SECRET_MIN_LEN || secret.len() > SECRET_MAX_LEN {
