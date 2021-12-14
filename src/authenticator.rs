@@ -1,11 +1,12 @@
 use std::time::{SystemTime, UNIX_EPOCH};
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use ring::hmac;
 use ring::hmac::{HMAC_SHA1_FOR_LEGACY_USE_ONLY, Key};
 
 /// the base32 charset using generate secret
 const ALPHABET: [char; 32] = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
-    'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7',
 ];
 
 /// The Max pin code length
@@ -16,6 +17,7 @@ const SECRET_MIN_LEN: usize = 16;
 
 const DIGITS_POWER: [i32; 10] = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000];
 
+/// The cropto signer
 pub trait Signer {
     fn sign(&self, data: &[u8]) -> Vec<u8>;
 }
@@ -29,6 +31,7 @@ impl Signer for Key {
     }
 }
 
+/// create a random secret
 pub fn create_secret(length: u8) -> String {
     let mut secret = Vec::<char>::new();
     let mut index: usize;
@@ -39,6 +42,7 @@ pub fn create_secret(length: u8) -> String {
     secret.into_iter().collect()
 }
 
+/// get the current pin code with special code length
 pub fn current_pin_code(secret: &str, code_len: u16) -> Result<String, String> {
     let otp_state = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() / 30;
     if secret.len() < SECRET_MIN_LEN || secret.len() > SECRET_MAX_LEN {
@@ -54,6 +58,38 @@ pub fn current_pin_code(secret: &str, code_len: u16) -> Result<String, String> {
     }
 }
 
+pub fn create_totp_url_schema(user: &str, secret: &str) -> String {
+    let name = utf8_percent_encode(user, NON_ALPHANUMERIC);
+    format!("otpauth://totp/{}?secret={}", name, secret)
+}
+
+pub fn create_qr_code_url(user: &str, secret: &str) -> String {
+    let totp_url_schema = create_totp_url_schema(user, secret);
+    let schema = utf8_percent_encode(totp_url_schema.as_str(), NON_ALPHANUMERIC);
+    let width = "200";
+    let height = "200";
+    return format!("https://api.qrserver.com/v1/create-qr-code/?data={}&size={}x{}&ecc=M", schema, width, height);
+}
+
+/// Verify pin code
+/// # Example
+/// ```rust
+/// use crate::authenticator_rs::authenticator;
+/// fn main(){
+///     let secret = "DGF3J5CSIU2JN6WEHECHIUUCLYHCNYAW";
+///     let pcode = "281087";
+///     let verify_rs = authenticator::verify_pin_code(secret,pcode, 6);
+///     println!("Pin code: {} verify result:{}", pcode, verify_rs)
+/// }
+/// ```
+pub fn verify_pin_code(secret: &str, pin_code: &str, code_len: u16) -> bool {
+    let code = current_pin_code(secret, code_len);
+    match code {
+        Ok(pcode) => { pcode.as_str().eq_ignore_ascii_case(pin_code) }
+        Err(_) => { false }
+    }
+}
+
 fn get_signer(secret_key: &[u8]) -> Box<dyn Signer> {
     Box::new(hmac::Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, secret_key))
 }
@@ -65,6 +101,7 @@ fn base32_decode(secret: &str) -> Result<Vec<u8>, String> {
     }
 }
 
+#[derive(Debug)]
 pub struct Authenticator {
     code_len: u16,
     signer: Box<dyn Signer>,
@@ -77,7 +114,6 @@ impl Authenticator {
         }
         Ok(Authenticator { code_len, signer })
     }
-
 
     pub fn generate_response_code(&self, otp_state: u64) -> Result<String, String> {
         let msg_bytes = otp_state.to_be_bytes();

@@ -16,8 +16,6 @@ pub mod authenticator;
 /// }
 ///
 /// ```
-
-
 #[cfg(test)]
 mod test {
     use crate::authenticator;
@@ -36,5 +34,17 @@ mod test {
             Ok(code) => { println!("Current Pin Code: {}", code) }
             Err(e) => { println!("Something has error: {}", e) }
         }
+    }
+
+    #[test]
+    fn test_qr_code_url() {
+        let qr_code_url = authenticator::create_qr_code_url("foobar", "DGF3J5CSIU2JN6WEHECHIUUCLYHCNYAW");
+        println!("{}", qr_code_url)
+    }
+
+    #[test]
+    fn test_verify_pin_code() {
+        let res = authenticator::verify_pin_code("DGF3J5CSIU2JN6WEHECHIUUCLYHCNYAW", "281087", 6);
+        println!("{}", res)
     }
 }
