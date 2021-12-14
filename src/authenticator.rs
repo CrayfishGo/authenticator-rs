@@ -1,8 +1,6 @@
-use std::fmt::Error;
-use std::result;
 use std::time::{SystemTime, UNIX_EPOCH};
 use ring::hmac;
-use ring::hmac::{Algorithm, HMAC_SHA1_FOR_LEGACY_USE_ONLY, Key};
+use ring::hmac::{HMAC_SHA1_FOR_LEGACY_USE_ONLY, Key};
 
 /// the base32 charset using generate secret
 const ALPHABET: [char; 32] = [
