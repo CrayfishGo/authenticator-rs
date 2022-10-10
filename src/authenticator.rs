@@ -106,7 +106,6 @@ pub struct Authenticator {
 
 impl Authenticator {
     pub fn new(signer: Box<dyn Signer>, code_len: usize) -> Result<Self, String> {
-        format!("numer is {}", 10);
         if code_len <= 0 || code_len > MAX_PINCODE_LENGTH.into() {
             return Err(format!("PinCode Length must be between 1 and {} digits", MAX_PINCODE_LENGTH));
         }
