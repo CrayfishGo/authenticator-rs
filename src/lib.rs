@@ -29,7 +29,7 @@ mod test {
 
     #[test]
     fn test_pin_code() {
-        let pin_code = authenticator::current_pin_code("DGF3J5CSIU2JN6WEHECHIUUCLYHCNYAW", 6);
+        let pin_code = authenticator::current_pin_code("abf3j5csiu2jn6wehechiuuclyh44yaw", 6);
         match pin_code {
             Ok(code) => { println!("Current Pin Code: {}", code) }
             Err(e) => { println!("Something has error: {}", e) }
@@ -38,13 +38,13 @@ mod test {
 
     #[test]
     fn test_qr_code_url() {
-        let qr_code_url = authenticator::create_qr_code_url("foobar", "DGF3J5CSIU2JN6WEHECHIUUCLYHCNYAW");
+        let qr_code_url = authenticator::create_qr_code_url("foobar", "abf3j5csiu2jn6wehechiuuclyh44yaw");
         println!("{}", qr_code_url)
     }
 
     #[test]
     fn test_verify_pin_code() {
-        let res = authenticator::verify_pin_code("DGF3J5CSIU2JN6WEHECHIUUCLYHCNYAW", "281087", 6);
+        let res = authenticator::verify_pin_code("abf3j5csiu2jn6wehechiuuclyh44yaw", "281087", 6);
         println!("{}", res)
     }
 }
